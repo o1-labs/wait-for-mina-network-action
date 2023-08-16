@@ -23,7 +23,7 @@ jobs:
       ...
     steps:
       - name: Wait for Mina Network readiness
-        uses: o1-labs/wait-for-mina-network-action@v1.0
+        uses: o1-labs/wait-for-mina-network-action@v1
         with:
           mina-graphql-port: 3085    # Default value
           max-attempts: 60           # Default value
