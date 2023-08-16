@@ -2844,10 +2844,19 @@ async function run() {
     const maxAttempts = Number(_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('max-attempts'));
     const pollingIntervalMs = Number(_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('polling-interval-ms'));
     const minaDaemonGraphQlEndpoint = `http://localhost:${minaDaemonGraphQlPort}/graphql`;
-    const query = '{"query": "{ syncStatus }"}';
+    const queryObject = {
+        query: '{ syncStatus }',
+        variables: null,
+        operationName: null
+    };
     let portCheckAttempt = 1;
     let networkSyncAttempt = 1;
     let networkIsSynced = false;
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info('\nAction input parameters:');
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`mina-graphql-port: ${minaDaemonGraphQlPort}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`max-attempts: ${maxAttempts}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`polling-interval-ms: ${pollingIntervalMs}\n`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info('\nWaiting for the Mina Daemon GraphQL port to be available...');
     // Wait for GraphQL port to be ready
     while (portCheckAttempt <= maxAttempts) {
         try {
@@ -2866,7 +2875,7 @@ async function run() {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info('\nMina Daemon GraphQL port is ready.\nWaiting for the network to sync...\n');
     // Wait for the network to sync
     while (networkSyncAttempt <= maxAttempts && !networkIsSynced) {
-        const response = await new _actions_http_client__WEBPACK_IMPORTED_MODULE_1__.HttpClient('mina-network-action').postJson(minaDaemonGraphQlEndpoint, query);
+        const response = await new _actions_http_client__WEBPACK_IMPORTED_MODULE_1__.HttpClient('mina-network-action').postJson(minaDaemonGraphQlEndpoint, queryObject);
         if (!response || !response.result || !response.result.data) {
             _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Empty response received. Retrying in ${pollingIntervalMs / 1000} seconds...`);
             await new Promise(resolve => setTimeout(resolve, pollingIntervalMs));

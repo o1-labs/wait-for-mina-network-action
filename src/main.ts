@@ -16,10 +16,21 @@ export async function run(): Promise<void> {
   const maxAttempts = Number(core.getInput('max-attempts'))
   const pollingIntervalMs = Number(core.getInput('polling-interval-ms'))
   const minaDaemonGraphQlEndpoint = `http://localhost:${minaDaemonGraphQlPort}/graphql`
-  const query = '{"query": "{ syncStatus }"}'
+  const queryObject = {
+    query: '{ syncStatus }',
+    variables: null,
+    operationName: null
+  }
   let portCheckAttempt = 1
   let networkSyncAttempt = 1
   let networkIsSynced = false
+
+  core.info('\nAction input parameters:')
+  core.info(`mina-graphql-port: ${minaDaemonGraphQlPort}`)
+  core.info(`max-attempts: ${maxAttempts}`)
+  core.info(`polling-interval-ms: ${pollingIntervalMs}\n`)
+
+  core.info('\nWaiting for the Mina Daemon GraphQL port to be available...')
 
   // Wait for GraphQL port to be ready
   while (portCheckAttempt <= maxAttempts) {
@@ -46,7 +57,7 @@ export async function run(): Promise<void> {
   while (networkSyncAttempt <= maxAttempts && !networkIsSynced) {
     const response = await new HttpClient(
       'mina-network-action'
-    ).postJson<GraphQLResponse>(minaDaemonGraphQlEndpoint, query)
+    ).postJson<GraphQLResponse>(minaDaemonGraphQlEndpoint, queryObject)
     if (!response || !response.result || !response.result.data) {
       core.info(
         `Empty response received. Retrying in ${
