@@ -1,19 +1,91 @@
 import * as core from '@actions/core'
-import {wait} from './wait'
+import {HttpClient} from '@actions/http-client'
 
-async function run(): Promise<void> {
-  try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
-
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    core.setOutput('time', new Date().toTimeString())
-  } catch (error) {
-    if (error instanceof Error) core.setFailed(error.message)
+interface GraphQLResponse {
+  data?: {
+    syncStatus?: string
   }
+  errors?: {
+    message: string
+  }[]
 }
 
-run()
+export async function run(): Promise<void> {
+  const startTime = performance.now()
+  const minaDaemonGraphQlPort = core.getInput('mina-graphql-port')
+  const maxAttempts = Number(core.getInput('max-attempts'))
+  const pollingIntervalMs = Number(core.getInput('polling-interval-ms'))
+  const minaDaemonGraphQlEndpoint = `http://localhost:${minaDaemonGraphQlPort}/graphql`
+  const query = '{"query": "{ syncStatus }"}'
+  let portCheckAttempt = 1
+  let networkSyncAttempt = 1
+  let networkIsSynced = false
+
+  // Wait for GraphQL port to be ready
+  while (portCheckAttempt <= maxAttempts) {
+    try {
+      await new HttpClient('mina-network-action').get(minaDaemonGraphQlEndpoint)
+      break
+    } catch (error) {
+      if (portCheckAttempt === maxAttempts) {
+        core.setFailed(
+          '\nMaximum port check attempts reached. GraphQL port not available.'
+        )
+        return
+      }
+      await new Promise(resolve => setTimeout(resolve, pollingIntervalMs))
+      portCheckAttempt++
+    }
+  }
+
+  core.info(
+    '\nMina Daemon GraphQL port is ready.\nWaiting for the network to sync...\n'
+  )
+
+  // Wait for the network to sync
+  while (networkSyncAttempt <= maxAttempts && !networkIsSynced) {
+    const response = await new HttpClient(
+      'mina-network-action'
+    ).postJson<GraphQLResponse>(minaDaemonGraphQlEndpoint, query)
+    if (!response || !response.result || !response.result.data) {
+      core.info(
+        `Empty response received. Retrying in ${
+          pollingIntervalMs / 1000
+        } seconds...`
+      )
+      await new Promise(resolve => setTimeout(resolve, pollingIntervalMs))
+    } else if (response.result.data.syncStatus === 'SYNCED') {
+      networkIsSynced = true
+      core.info('Network is synced.')
+    } else {
+      core.info(
+        `Network is not synced. Retrying in ${
+          pollingIntervalMs / 1000
+        } seconds...`
+      )
+      await new Promise(resolve => setTimeout(resolve, pollingIntervalMs))
+    }
+    networkSyncAttempt++
+  }
+
+  if (!networkIsSynced) {
+    core.setFailed(
+      '\nMaximum network sync attempts reached. Network is not synced.'
+    )
+  } else {
+    core.info('\nNetwork is ready to use.')
+  }
+
+  const runTime = (performance.now() - startTime) / 1000
+  core.info(`\nDone. Runtime: ${runTime} seconds.\n`)
+}
+
+if (!process.env.JEST_WORKER_ID) {
+  try {
+    ;async () => {
+      await run()
+    }
+  } catch (error) {
+    core.setFailed(error instanceof Error ? error.message : String(error))
+  }
+}

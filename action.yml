@@ -1,11 +1,22 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: "wait-for-mina-network"
+author: "O(1) Labs"
+description: "GitHub Action to wait for the Mina Network readiness"
 inputs:
-  milliseconds: # change this
-    required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+  mina-graphql-port:
+    required: false
+    description: "Mina GraphQL port"
+    default: "3085"
+  max-attempts:
+    required: false
+    description: "Maximum number of attempts"
+    default: "60"
+  polling-interval-ms:
+    required: false
+    description: "Polling interval in milliseconds"
+    default: "10000"
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: "node16"
+  main: "dist/index.js"
+branding:
+  icon: "clock"
+  color: "green"
