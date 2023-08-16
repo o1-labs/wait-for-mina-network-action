@@ -1,109 +1,32 @@
-<p align="center">
-  <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
-</p>
+# GitHub Action to wait for the Mina Network readiness
 
-# Create a JavaScript Action using TypeScript
+This GitHub Action will be useful should you ever need to run the [Mina Network](https://hub.docker.com/r/o1labs/mina-local-network) as the [Docker service](https://docs.github.com/en/actions/using-containerized-services/about-service-containers) within your CI/CD pipeline.
 
-Use this template to bootstrap the creation of a TypeScript action.:rocket:
-
-This template includes compilation support, tests, a validation workflow, publishing, and versioning guidance.
-
-If you are new, there's also a simpler introduction. See the [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
-
-## Create an action from this template
-
-Click the `Use this Template` and provide the new repo details for your action
-
-## Code in Main
-
-> First, you'll need to have a reasonably modern version of `node` handy. This won't work with versions older than 9, for instance.
-
-Install the dependencies
-
-```bash
-$ npm install
-```
-
-Build the typescript and package it for distribution
-
-```bash
-$ npm run build && npm run package
-```
-
-Run the tests :heavy_check_mark:
-
-```bash
-$ npm test
-
- PASS  ./index.test.js
-  ✓ throws invalid number (3ms)
-  ✓ wait 500 ms (504ms)
-  ✓ test runs (95ms)
-
-...
-```
-
-## Change action.yml
-
-The action.yml defines the inputs and output for your action.
-
-Update the action.yml with your name, description, inputs and outputs for your action.
-
-See the [documentation](https://help.github.com/en/articles/metadata-syntax-for-github-actions)
-
-## Change the Code
-
-Most toolkit and CI/CD operations involve async operations so the action is run in an async function.
-
-```javascript
-import * as core from '@actions/core';
-...
-
-async function run() {
-  try {
-      ...
-  }
-  catch (error) {
-    core.setFailed(error.message);
-  }
-}
-
-run()
-```
-
-See the [toolkit documentation](https://github.com/actions/toolkit/blob/master/README.md#packages) for the various packages.
-
-## Publish to a distribution branch
-
-Actions are run from GitHub repos so we will checkin the packed dist folder.
-
-Then run [ncc](https://github.com/zeit/ncc) and push the results:
-
-```bash
-$ npm run package
-$ git add dist
-$ git commit -a -m "prod dependencies"
-$ git push origin releases/v1
-```
-
-Note: We recommend using the `--license` option for ncc, which will create a license file for all of the production node modules used in your project.
-
-Your action is now published! :rocket:
-
-See the [versioning documentation](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-
-## Validate
-
-You can now validate the action by referencing `./` in a workflow in your repo (see [test.yml](.github/workflows/test.yml))
+## Example usage
 
 ```yaml
-uses: ./
-with:
-  milliseconds: 1000
+...
+jobs:
+  my-job:
+    ...
+    services:
+      mina-local-network:
+        image: o1labs/mina-local-network:rampup-latest-lightnet
+        env:
+          NETWORK_TYPE: 'single-node'
+          PROOF_LEVEL: 'none'
+        ports:
+          - 3085:3085
+          - 5432:5432
+          - 8080:8080
+          - 8181:8181
+      ...
+    steps:
+      - name: Wait for Mina Network readiness
+        uses: o1-labs/wait-for-mina-network-action@v1.0
+        with:
+          mina-graphql-port: 3085    # Default value
+          max-attempts: 60           # Default value
+          polling-interval-ms: 10000 # Default value
+      ...
 ```
-
-See the [actions tab](https://github.com/actions/typescript-action/actions) for runs of this action! :rocket:
-
-## Usage:
-
-After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action

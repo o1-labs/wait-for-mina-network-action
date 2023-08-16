@@ -1202,6 +1202,19 @@ class HttpClientResponse {
             }));
         });
     }
+    readBodyBuffer() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                const chunks = [];
+                this.message.on('data', (chunk) => {
+                    chunks.push(chunk);
+                });
+                this.message.on('end', () => {
+                    resolve(Buffer.concat(chunks));
+                });
+            }));
+        });
+    }
 }
 exports.HttpClientResponse = HttpClientResponse;
 function isHttps(requestUrl) {
@@ -1705,7 +1718,13 @@ function getProxyUrl(reqUrl) {
         }
     })();
     if (proxyVar) {
-        return new URL(proxyVar);
+        try {
+            return new URL(proxyVar);
+        }
+        catch (_a) {
+            if (!proxyVar.startsWith('http://') && !proxyVar.startsWith('https://'))
+                return new URL(`http://${proxyVar}`);
+        }
     }
     else {
         return undefined;
@@ -1715,6 +1734,10 @@ exports.getProxyUrl = getProxyUrl;
 function checkBypass(reqUrl) {
     if (!reqUrl.hostname) {
         return false;
+    }
+    const reqHost = reqUrl.hostname;
+    if (isLoopbackAddress(reqHost)) {
+        return true;
     }
     const noProxy = process.env['no_proxy'] || process.env['NO_PROXY'] || '';
     if (!noProxy) {
@@ -1741,13 +1764,24 @@ function checkBypass(reqUrl) {
         .split(',')
         .map(x => x.trim().toUpperCase())
         .filter(x => x)) {
-        if (upperReqHosts.some(x => x === upperNoProxyItem)) {
+        if (upperNoProxyItem === '*' ||
+            upperReqHosts.some(x => x === upperNoProxyItem ||
+                x.endsWith(`.${upperNoProxyItem}`) ||
+                (upperNoProxyItem.startsWith('.') &&
+                    x.endsWith(`${upperNoProxyItem}`)))) {
             return true;
         }
     }
     return false;
 }
 exports.checkBypass = checkBypass;
+function isLoopbackAddress(host) {
+    const hostLower = host.toLowerCase();
+    return (hostLower === 'localhost' ||
+        hostLower.startsWith('127.') ||
+        hostLower.startsWith('[::1]') ||
+        hostLower.startsWith('[0:0:0:0:0:0:0:1]'));
+}
 //# sourceMappingURL=proxy.js.map
 
 /***/ }),
@@ -2772,6 +2806,23 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("util");
 /******/ }
 /******/ 
 /************************************************************************/
+/******/ /* webpack/runtime/define property getters */
+/******/ (() => {
+/******/ 	// define getter functions for harmony exports
+/******/ 	__nccwpck_require__.d = (exports, definition) => {
+/******/ 		for(var key in definition) {
+/******/ 			if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 			}
+/******/ 		}
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/hasOwnProperty shorthand */
+/******/ (() => {
+/******/ 	__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ })();
+/******/ 
 /******/ /* webpack/runtime/compat */
 /******/ 
 /******/ if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = new URL('.', import.meta.url).pathname.slice(import.meta.url.match(/^file:\/\/\/\w:/) ? 1 : 0, -1) + "/";
@@ -2780,39 +2831,80 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("util");
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(186);
-;// CONCATENATED MODULE: ./lib/wait.js
-async function wait(milliseconds) {
-    return new Promise(resolve => {
-        if (isNaN(milliseconds)) {
-            throw new Error('milliseconds not a number');
-        }
-        setTimeout(() => resolve('done!'), milliseconds);
-    });
-}
-
-;// CONCATENATED MODULE: ./lib/main.js
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   "K": () => (/* binding */ run)
+/* harmony export */ });
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(186);
+/* harmony import */ var _actions_http_client__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(255);
 
 
 async function run() {
+    const startTime = performance.now();
+    const minaDaemonGraphQlPort = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('mina-graphql-port');
+    const maxAttempts = Number(_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('max-attempts'));
+    const pollingIntervalMs = Number(_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('polling-interval-ms'));
+    const minaDaemonGraphQlEndpoint = `http://localhost:${minaDaemonGraphQlPort}/graphql`;
+    const query = '{"query": "{ syncStatus }"}';
+    let portCheckAttempt = 1;
+    let networkSyncAttempt = 1;
+    let networkIsSynced = false;
+    // Wait for GraphQL port to be ready
+    while (portCheckAttempt <= maxAttempts) {
+        try {
+            await new _actions_http_client__WEBPACK_IMPORTED_MODULE_1__.HttpClient('mina-network-action').get(minaDaemonGraphQlEndpoint);
+            break;
+        }
+        catch (error) {
+            if (portCheckAttempt === maxAttempts) {
+                _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed('\nMaximum port check attempts reached. GraphQL port not available.');
+                return;
+            }
+            await new Promise(resolve => setTimeout(resolve, pollingIntervalMs));
+            portCheckAttempt++;
+        }
+    }
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info('\nMina Daemon GraphQL port is ready.\nWaiting for the network to sync...\n');
+    // Wait for the network to sync
+    while (networkSyncAttempt <= maxAttempts && !networkIsSynced) {
+        const response = await new _actions_http_client__WEBPACK_IMPORTED_MODULE_1__.HttpClient('mina-network-action').postJson(minaDaemonGraphQlEndpoint, query);
+        if (!response || !response.result || !response.result.data) {
+            _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Empty response received. Retrying in ${pollingIntervalMs / 1000} seconds...`);
+            await new Promise(resolve => setTimeout(resolve, pollingIntervalMs));
+        }
+        else if (response.result.data.syncStatus === 'SYNCED') {
+            networkIsSynced = true;
+            _actions_core__WEBPACK_IMPORTED_MODULE_0__.info('Network is synced.');
+        }
+        else {
+            _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Network is not synced. Retrying in ${pollingIntervalMs / 1000} seconds...`);
+            await new Promise(resolve => setTimeout(resolve, pollingIntervalMs));
+        }
+        networkSyncAttempt++;
+    }
+    if (!networkIsSynced) {
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed('\nMaximum network sync attempts reached. Network is not synced.');
+    }
+    else {
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info('\nNetwork is ready to use.');
+    }
+    const runTime = (performance.now() - startTime) / 1000;
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`\nDone. Runtime: ${runTime} seconds.\n`);
+}
+if (!process.env.JEST_WORKER_ID) {
     try {
-        const ms = core.getInput('milliseconds');
-        core.debug(`Waiting ${ms} milliseconds ...`);
-        core.debug(new Date().toTimeString());
-        await wait(parseInt(ms, 10));
-        core.debug(new Date().toTimeString());
-        core.setOutput('time', new Date().toTimeString());
+        ;
+        async () => {
+            await run();
+        };
     }
     catch (error) {
-        if (error instanceof Error)
-            core.setFailed(error.message);
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error instanceof Error ? error.message : String(error));
     }
 }
-run();
 
 })();
 
+var __webpack_exports__run = __webpack_exports__.K;
+export { __webpack_exports__run as run };
 
 //# sourceMappingURL=index.js.map
