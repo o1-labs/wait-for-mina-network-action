@@ -81,11 +81,7 @@ export async function run(): Promise<void> {
 }
 
 if (!process.env.JEST_WORKER_ID) {
-  try {
-    ;async () => {
-      await run()
-    }
-  } catch (error) {
+  run().catch(error =>
     core.setFailed(error instanceof Error ? error.message : String(error))
-  }
+  )
 }

@@ -2891,15 +2891,7 @@ async function run() {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`\nDone. Runtime: ${runTime} seconds.\n`);
 }
 if (!process.env.JEST_WORKER_ID) {
-    try {
-        ;
-        async () => {
-            await run();
-        };
-    }
-    catch (error) {
-        _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error instanceof Error ? error.message : String(error));
-    }
+    run().catch(error => _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error instanceof Error ? error.message : String(error)));
 }
 
 })();
