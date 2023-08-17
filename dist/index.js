@@ -2855,7 +2855,7 @@ async function run() {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info('\nAction input parameters:');
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`mina-graphql-port: ${minaDaemonGraphQlPort}`);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`max-attempts: ${maxAttempts}`);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`polling-interval-ms: ${pollingIntervalMs}\n`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`polling-interval-ms: ${pollingIntervalMs}`);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info('\nWaiting for the Mina Daemon GraphQL port to be available...');
     // Wait for GraphQL port to be ready
     while (portCheckAttempt <= maxAttempts) {
@@ -2896,8 +2896,8 @@ async function run() {
     else {
         _actions_core__WEBPACK_IMPORTED_MODULE_0__.info('\nNetwork is ready to use.');
     }
-    const runTime = (performance.now() - startTime) / 1000;
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`\nDone. Runtime: ${runTime} seconds.\n`);
+    const runTime = Math.round((performance.now() - startTime) / 1000).toFixed(2);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Done. Runtime: ${runTime} seconds.\n`);
 }
 if (!process.env.JEST_WORKER_ID) {
     run().catch(error => _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error instanceof Error ? error.message : String(error)));

@@ -28,7 +28,7 @@ export async function run(): Promise<void> {
   core.info('\nAction input parameters:')
   core.info(`mina-graphql-port: ${minaDaemonGraphQlPort}`)
   core.info(`max-attempts: ${maxAttempts}`)
-  core.info(`polling-interval-ms: ${pollingIntervalMs}\n`)
+  core.info(`polling-interval-ms: ${pollingIntervalMs}`)
 
   core.info('\nWaiting for the Mina Daemon GraphQL port to be available...')
 
@@ -87,8 +87,8 @@ export async function run(): Promise<void> {
     core.info('\nNetwork is ready to use.')
   }
 
-  const runTime = (performance.now() - startTime) / 1000
-  core.info(`\nDone. Runtime: ${runTime} seconds.\n`)
+  const runTime = Math.round((performance.now() - startTime) / 1000).toFixed(2)
+  core.info(`Done. Runtime: ${runTime} seconds.\n`)
 }
 
 if (!process.env.JEST_WORKER_ID) {
