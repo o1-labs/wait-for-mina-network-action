@@ -1,6 +1,6 @@
-# GitHub Action to wait for the Mina Network readiness
+# GitHub Action to wait for the Mina network readiness
 
-This GitHub Action will be useful should you ever need to run the [Mina Network](https://hub.docker.com/r/o1labs/mina-local-network) as the [Docker service](https://docs.github.com/en/actions/using-containerized-services/about-service-containers) within your CI/CD pipeline.
+This GitHub Action will be useful should you ever need to run the [Mina network](https://hub.docker.com/r/o1labs/mina-local-network) as the [Docker service](https://docs.github.com/en/actions/using-containerized-services/about-service-containers) within your CI/CD pipeline.
 
 ## Example usage
 
@@ -22,7 +22,7 @@ jobs:
           - 8181:8181
       ...
     steps:
-      - name: Wait for Mina Network readiness
+      - name: Wait for Mina network readiness
         uses: o1-labs/wait-for-mina-network-action@v1
         with:
           mina-graphql-port: 3085    # Default value

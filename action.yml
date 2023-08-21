@@ -1,6 +1,6 @@
 name: "wait-for-mina-network"
 author: "O(1) Labs"
-description: "GitHub Action to wait for the Mina Network readiness"
+description: "GitHub Action to wait for the Mina network readiness"
 inputs:
   mina-graphql-port:
     required: false

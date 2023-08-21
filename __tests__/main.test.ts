@@ -21,7 +21,7 @@ function mockHttpPostJson(response: any) {
   jest.spyOn(HttpClient.prototype, 'postJson').mockResolvedValue(response)
 }
 
-describe('Mina Network GitHub Action', () => {
+describe('Mina network GitHub Action', () => {
   beforeEach(() => {
     jest.resetModules()
     jest.restoreAllMocks()
