@@ -1,6 +1,6 @@
 # GitHub Action to wait for the Mina network readiness
 
-You can use this GitHub Action in your CI/CD pipelines in order to automate the network readiness checks in case when you use the [o1labs/mina-local-network](https://hub.docker.com/r/o1labs/mina-local-network) lightweight Mina Docker images as your Job(s) [service container](https://docs.github.com/en/actions/using-containerized-services/about-service-containers).
+You can use this GitHub Action in your CI/CD pipelines to automate the network readiness checks when you use the [o1labs/mina-local-network](https://hub.docker.com/r/o1labs/mina-local-network) lightweight Mina Docker images as your job or jobs [service container](https://docs.github.com/en/actions/using-containerized-services/about-service-containers).
 
 ## Example usage
 
