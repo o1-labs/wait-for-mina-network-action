@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "es2020",
-    "module": "es2022",
-    "moduleResolution": "nodenext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "outDir": "./lib",
     "rootDir": "./src",
     "strict": true,
