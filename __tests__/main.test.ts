@@ -13,10 +13,6 @@ function mockCoreMethods() {
   jest.spyOn(core, 'setFailed').mockImplementation(jest.fn())
 }
 
-function mockHttpGet(response: any) {
-  jest.spyOn(HttpClient.prototype, 'get').mockResolvedValue(response)
-}
-
 function mockHttpPostJson(response: any) {
   jest.spyOn(HttpClient.prototype, 'postJson').mockResolvedValue(response)
 }
@@ -33,10 +29,6 @@ describe('Mina network GitHub Action', () => {
       'max-attempts': '3',
       'polling-interval-ms': '100'
     })
-    mockHttpGet({
-      message: {} as any,
-      readBody: Promise.resolve({}) as any
-    })
     mockHttpPostJson({
       statusCode: 200,
       headers: {},
@@ -48,11 +40,13 @@ describe('Mina network GitHub Action', () => {
     })
     mockCoreMethods()
     await run()
-    expect(core.info).toHaveBeenCalledWith('Network is synced.')
+    expect(core.info).toHaveBeenCalledWith(
+      '\nBlockchain network is ready to use.'
+    )
   })
 
   it('should fail if GraphQL endpoint is never available', async () => {
-    mockHttpGet(Promise.reject(new Error('Network Error')))
+    mockHttpPostJson(Promise.reject(new Error('Network Error')))
     mockCoreInputs({
       'mina-graphql-port': '3085',
       'max-attempts': '3',
@@ -61,15 +55,11 @@ describe('Mina network GitHub Action', () => {
     mockCoreMethods()
     await run()
     expect(core.setFailed).toHaveBeenCalledWith(
-      '\nMaximum port check attempts reached. GraphQL port not available.'
+      '\nMaximum network sync attempts reached. The blockchain network is not ready!'
     )
   })
 
   it('should fail if network does not sync within max attempts', async () => {
-    mockHttpGet({
-      message: {} as any,
-      readBody: Promise.resolve({}) as any
-    })
     mockHttpPostJson({
       statusCode: 200,
       headers: {},
@@ -83,15 +73,11 @@ describe('Mina network GitHub Action', () => {
     mockCoreMethods()
     await run()
     expect(core.setFailed).toHaveBeenCalledWith(
-      '\nMaximum network sync attempts reached. Network is not synced.'
+      '\nMaximum network sync attempts reached. The blockchain network is not ready!'
     )
   })
 
   it('should retry when an empty GraphQL response is received', async () => {
-    mockHttpGet({
-      message: {} as any,
-      readBody: Promise.resolve({}) as any
-    })
     mockHttpPostJson({
       statusCode: 200,
       headers: {},
@@ -105,15 +91,11 @@ describe('Mina network GitHub Action', () => {
     mockCoreMethods()
     await run()
     expect(core.info).toHaveBeenCalledWith(
-      'Empty response received. Retrying in 0.1 seconds...'
+      'Blockchain network is not ready yet. Retrying in 0.1 seconds.'
     )
   })
 
   it('should retry when GraphQL query returns an error', async () => {
-    mockHttpGet({
-      message: {} as any,
-      readBody: Promise.resolve({}) as any
-    })
     mockHttpPostJson({
       statusCode: 200,
       headers: {},
@@ -127,15 +109,11 @@ describe('Mina network GitHub Action', () => {
     mockCoreMethods()
     await run()
     expect(core.info).toHaveBeenCalledWith(
-      'Empty response received. Retrying in 0.1 seconds...'
+      'Blockchain network is not ready yet. Retrying in 0.1 seconds.'
     )
   })
 
   it('should retry when a malformed GraphQL response is received', async () => {
-    mockHttpGet({
-      message: {} as any,
-      readBody: Promise.resolve({}) as any
-    })
     mockHttpPostJson({
       statusCode: 200,
       headers: {},
@@ -149,7 +127,7 @@ describe('Mina network GitHub Action', () => {
     mockCoreMethods()
     await run()
     expect(core.info).toHaveBeenCalledWith(
-      'Empty response received. Retrying in 0.1 seconds...'
+      'Blockchain network is not ready yet. Retrying in 0.1 seconds.'
     )
   })
 })
