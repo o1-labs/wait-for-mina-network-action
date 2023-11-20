@@ -25858,7 +25858,8 @@ function secondsToHms(seconds) {
     if (s > 0) {
         sDisplay = s + (s === 1 ? ' second' : ' seconds');
     }
-    return hDisplay + mDisplay + sDisplay;
+    const result = hDisplay + mDisplay + sDisplay;
+    return result.endsWith(', ') ? result.slice(0, -2) : result;
 }
 if (!process.env.JEST_WORKER_ID) {
     run().catch(error => _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error instanceof Error ? error.message : String(error)));

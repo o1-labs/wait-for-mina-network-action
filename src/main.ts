@@ -93,7 +93,8 @@ function secondsToHms(seconds: number | string): string {
   if (s > 0) {
     sDisplay = s + (s === 1 ? ' second' : ' seconds')
   }
-  return hDisplay + mDisplay + sDisplay
+  const result = hDisplay + mDisplay + sDisplay
+  return result.endsWith(', ') ? result.slice(0, -2) : result
 }
 
 if (!process.env.JEST_WORKER_ID) {
