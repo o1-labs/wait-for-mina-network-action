@@ -11,15 +11,17 @@ jobs:
     ...
     services:
       mina-local-network:
-        image: o1labs/mina-local-network:o1js-main-latest-lightnet
+        image: o1labs/mina-local-network:berkeley-latest-lightnet
         env:
           NETWORK_TYPE: 'single-node'
           PROOF_LEVEL: 'none'
+          LOG_LEVEL: 'Info'
         ports:
           - 3085:3085
           - 5432:5432
           - 8080:8080
           - 8181:8181
+          - 8282:8282
       ...
     steps:
       - name: Wait for Mina network readiness
