@@ -25788,7 +25788,7 @@ async function run() {
     const minaDaemonGraphQlPort = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('mina-graphql-port');
     const maxAttempts = Number(_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('max-attempts'));
     const pollingIntervalMs = Number(_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('polling-interval-ms'));
-    const minaDaemonGraphQlEndpoint = `http://localhost:${minaDaemonGraphQlPort}/graphql`;
+    const minaDaemonGraphQlEndpoint = `http://127.0.0.1:${minaDaemonGraphQlPort}/graphql`;
     const syncStatusGraphQlQuery = {
         query: '{ syncStatus }',
         variables: null,

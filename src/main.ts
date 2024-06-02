@@ -15,7 +15,7 @@ export async function run(): Promise<void> {
   const minaDaemonGraphQlPort = core.getInput('mina-graphql-port')
   const maxAttempts = Number(core.getInput('max-attempts'))
   const pollingIntervalMs = Number(core.getInput('polling-interval-ms'))
-  const minaDaemonGraphQlEndpoint = `http://localhost:${minaDaemonGraphQlPort}/graphql`
+  const minaDaemonGraphQlEndpoint = `http://127.0.0.1:${minaDaemonGraphQlPort}/graphql`
   const syncStatusGraphQlQuery = {
     query: '{ syncStatus }',
     variables: null,
