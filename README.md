@@ -11,7 +11,7 @@ jobs:
     ...
     services:
       mina-local-network:
-        image: o1labs/mina-local-network:berkeley-latest-lightnet
+        image: o1labs/mina-local-network:compatible-latest-lightnet
         env:
           NETWORK_TYPE: 'single-node'
           PROOF_LEVEL: 'none'
