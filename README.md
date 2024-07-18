@@ -1,6 +1,16 @@
 # GitHub Action to wait for the Mina network readiness
 
-You can use this GitHub Action in your CI/CD pipelines to automate the network readiness checks when you use the [o1labs/mina-local-network](https://hub.docker.com/r/o1labs/mina-local-network) lightweight Mina Docker images as your job or jobs [service container](https://docs.github.com/en/actions/using-containerized-services/about-service-containers).
+[![GitHub Super-Linter](https://github.com/o1-labs/wait-for-mina-network-action/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
+![CI](https://github.com/o1-labs/wait-for-mina-network-action/actions/workflows/ci.yml/badge.svg)
+[![Check dist/](https://github.com/o1-labs/wait-for-mina-network-action/actions/workflows/check-dist.yml/badge.svg)](https://github.com/o1-labs/wait-for-mina-network-action/actions/workflows/check-dist.yml)
+[![CodeQL](https://github.com/o1-labs/wait-for-mina-network-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/o1-labs/wait-for-mina-network-action/actions/workflows/codeql-analysis.yml)
+[![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
+
+You can use this GitHub Action in your CI/CD pipelines to automate the network
+readiness checks when you use the
+[o1labs/mina-local-network](https://hub.docker.com/r/o1labs/mina-local-network)
+lightweight Mina Docker images as your job or jobs
+[service container](https://docs.github.com/en/actions/using-containerized-services/about-service-containers).
 
 ## Example usage
 

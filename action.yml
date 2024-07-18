@@ -1,22 +1,25 @@
-name: "wait-for-mina-network"
-author: "O(1) Labs"
-description: "GitHub Action to wait for the Mina network readiness"
+name: 'wait-for-mina-network'
+description: 'GitHub Action to wait for the Mina network readiness'
+author: 'O(1) Labs'
+
+branding:
+  icon: 'clock'
+  color: 'green'
+
 inputs:
   mina-graphql-port:
     required: false
-    description: "Mina GraphQL port"
-    default: "3085"
+    description: 'Mina GraphQL port'
+    default: '3085'
   max-attempts:
     required: false
-    description: "Maximum number of attempts"
-    default: "60"
+    description: 'Maximum number of attempts'
+    default: '60'
   polling-interval-ms:
     required: false
-    description: "Polling interval in milliseconds"
-    default: "10000"
+    description: 'Polling interval in milliseconds'
+    default: '10000'
+
 runs:
-  using: "node16"
-  main: "dist/index.js"
-branding:
-  icon: "clock"
-  color: "green"
+  using: 'node20'
+  main: 'dist/index.js'

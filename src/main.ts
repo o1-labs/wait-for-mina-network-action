@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
-import {HttpClient} from '@actions/http-client'
+import { HttpClient } from '@actions/http-client'
+import { wait } from './wait'
 
 interface GraphQlResponse {
   data?: {
@@ -10,6 +11,10 @@ interface GraphQlResponse {
   }[]
 }
 
+/**
+ * The main function for the action.
+ * @returns {Promise<void>} Resolves when the action is complete.
+ */
 export async function run(): Promise<void> {
   const startTime = performance.now()
   const minaDaemonGraphQlPort = core.getInput('mina-graphql-port')
@@ -41,17 +46,17 @@ export async function run(): Promise<void> {
         syncStatusGraphQlQuery
       )
       if (response.statusCode >= 400) {
-        await new Promise(resolve => setTimeout(resolve, pollingIntervalMs))
+        await wait(pollingIntervalMs)
       } else {
         const result = response.result
         if (result?.data?.syncStatus === 'SYNCED') {
           blockchainIsReady = true
         } else {
-          await new Promise(resolve => setTimeout(resolve, pollingIntervalMs))
+          await wait(pollingIntervalMs)
         }
       }
     } catch (_) {
-      await new Promise(resolve => setTimeout(resolve, pollingIntervalMs))
+      await wait(pollingIntervalMs)
     }
     logBlockchainIsNotReadyYet(pollingIntervalMs)
     blockchainSyncAttempt++
@@ -75,12 +80,16 @@ function logBlockchainIsNotReadyYet(pollingIntervalMs: number): void {
   )
 }
 
-function secondsToHms(seconds: number | string): string {
+/**
+ * Converts seconds to human readable time format (HH hours, MM minutes, SS seconds).
+ * @param {number | string} seconds - The number of seconds to convert.
+ * @returns {string} The human readable time format.
+ */
+export function secondsToHms(seconds: number | string): string {
   seconds = Number(seconds)
   const h = Math.floor(seconds / 3600)
   const m = Math.floor((seconds % 3600) / 60)
   const s = Math.floor((seconds % 3600) % 60)
-
   let hDisplay = ''
   if (h > 0) {
     hDisplay = h + (h === 1 ? ' hour, ' : ' hours, ')
@@ -95,10 +104,4 @@ function secondsToHms(seconds: number | string): string {
   }
   const result = hDisplay + mDisplay + sDisplay
   return result.endsWith(', ') ? result.slice(0, -2) : result
-}
-
-if (!process.env.JEST_WORKER_ID) {
-  run().catch(error =>
-    core.setFailed(error instanceof Error ? error.message : String(error))
-  )
 }
