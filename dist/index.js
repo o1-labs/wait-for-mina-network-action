@@ -26381,7 +26381,8 @@ async function run() {
     const minaDaemonGraphQlPort = core.getInput('mina-graphql-port');
     const maxAttempts = Number(core.getInput('max-attempts'));
     const pollingIntervalMs = Number(core.getInput('polling-interval-ms'));
-    const minaDaemonGraphQlEndpoint = `http://127.0.0.1:${minaDaemonGraphQlPort}/graphql`;
+    const minaDaemonGraphQlUrlWithIp = `http://127.0.0.1:${minaDaemonGraphQlPort}/graphql`;
+    const minaDaemonGraphQlUrlWithDn = `http://localhost:${minaDaemonGraphQlPort}/graphql`;
     const syncStatusGraphQlQuery = {
         query: '{ syncStatus }',
         variables: null,
@@ -26395,28 +26396,33 @@ async function run() {
     core.info(`max-attempts: ${maxAttempts}`);
     core.info(`polling-interval-ms: ${pollingIntervalMs}`);
     core.info('\nWaiting for the blockchain network readiness.\n');
-    // Wait for the blockchain network to be ready to use
-    while (blockchainSyncAttempt <= maxAttempts && !blockchainIsReady) {
+    const checkEndpoint = async (url) => {
         try {
-            const response = await new http_client_1.HttpClient('mina-network-action').postJson(minaDaemonGraphQlEndpoint, syncStatusGraphQlQuery);
-            if (response.statusCode >= 400) {
-                await (0, wait_1.wait)(pollingIntervalMs);
-            }
-            else {
+            const response = await new http_client_1.HttpClient('mina-network-action', undefined, {
+                allowRedirects: true,
+                ignoreSslError: true
+            }).postJson(url, syncStatusGraphQlQuery);
+            if (response.statusCode < 400) {
                 const result = response.result;
                 if (result?.data?.syncStatus === 'SYNCED') {
-                    blockchainIsReady = true;
-                }
-                else {
-                    await (0, wait_1.wait)(pollingIntervalMs);
+                    return true;
                 }
             }
         }
         catch (_) {
-            await (0, wait_1.wait)(pollingIntervalMs);
+            // Ignore the errors.
         }
-        logBlockchainIsNotReadyYet(pollingIntervalMs);
-        blockchainSyncAttempt++;
+        return false;
+    };
+    while (blockchainSyncAttempt <= maxAttempts && !blockchainIsReady) {
+        blockchainIsReady =
+            (await checkEndpoint(minaDaemonGraphQlUrlWithIp)) ||
+                (await checkEndpoint(minaDaemonGraphQlUrlWithDn));
+        if (!blockchainIsReady) {
+            logBlockchainIsNotReadyYet(pollingIntervalMs);
+            await (0, wait_1.wait)(pollingIntervalMs);
+            blockchainSyncAttempt++;
+        }
     }
     if (!blockchainIsReady) {
         core.setFailed('\nMaximum network sync attempts reached. The blockchain network is not ready!');
